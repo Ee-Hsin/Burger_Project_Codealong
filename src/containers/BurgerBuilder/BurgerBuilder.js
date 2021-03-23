@@ -5,6 +5,9 @@ import Burger from '../../components/Burger/Burger'
 import BuildControls from '../../components/Burger/BuildControls/BuildControls'
 import Modal from '../../components/UI/Modal/Modal'
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary'
+import axios from '../../axios-orders';
+import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
+import Spinner from '../../components/UI/Spinner/Spinner';
 
 const INGREDIENT_PRICES = {
     salad: 0.5,
@@ -24,7 +27,8 @@ class BurgerBuilder extends Component {
         },
         totalPrice: 5,
         purchasable : false,
-        purchasing: false
+        purchasing: false,
+        loading: false
     }
 
     //purchase state will be false unless there are any ingredients in ingredients above 0.
@@ -77,8 +81,37 @@ class BurgerBuilder extends Component {
     }
 
     purchaseContinueHandler = () => {
-        //will implement a checkout in the future
-        alert('You Continue!');
+        // alert('You Continue!');
+        //Implementing checkout
+        this.setState({loading: true});
+
+        const order={
+            ingredients: this.state.ingredients,
+            price: this.state.totalPrice, //on real app, would take ingredients and recalculate price on the server itself.
+
+            //Hard coding info for now (in future will implement checkout page requiring info)
+            customer: {
+                name: 'Ee Hsin Kok',
+                address: {
+                    street: 'Teststreet 1',
+                    zipCode: '41351',
+                    country: 'Germany'
+                },
+                email: "test@test.com"
+            },
+            deliveryMethod: 'fastest'
+        }
+        //The .json format is exclusive to Firebase to tell it to store it in .json.
+        //Anyway, the /orders endpoint will let firebase create a node for orders.
+        axios.post('/orders.json', order)
+            .then(response => {
+                this.setState({loading: false, purchasing: false});
+                console.log(response);
+            })
+            .catch(error => {
+                this.setState({loading: false, purchasing: false});
+                console.log(error);
+            });
     }
 
     render() {
@@ -91,15 +124,21 @@ class BurgerBuilder extends Component {
             if the key is below or equal to 0)*/
         }
 
+        let orderSummary = <OrderSummary 
+            ingredients={this.state.ingredients}
+            price={this.state.totalPrice} 
+            purchaseCancelled={this.purchaseCancelHandler} 
+            purchaseContinued={this.purchaseContinueHandler} 
+            />;
+
+        if(this.state.loading) {
+            orderSummary = <Spinner/>
+        }
+
         return(
         <Aux>
             <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelHandler}>
-                <OrderSummary 
-                ingredients={this.state.ingredients}
-                price={this.state.totalPrice} 
-                purchaseCancelled={this.purchaseCancelHandler} 
-                purchaseContinued={this.purchaseContinueHandler} 
-                />
+                {orderSummary}
             </Modal>
             <Burger ingredients = {this.state.ingredients}/>
             <BuildControls
@@ -115,4 +154,4 @@ class BurgerBuilder extends Component {
     }
 }
 
-export default BurgerBuilder;
+export default withErrorHandler(BurgerBuilder, axios);
