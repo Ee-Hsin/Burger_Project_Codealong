@@ -19,16 +19,23 @@ const INGREDIENT_PRICES = {
 class BurgerBuilder extends Component {
 
     state = {
-        ingredients: {
-            salad: 0,
-            bacon : 0,
-            cheese: 0,
-            meat: 0
-        },
+        ingredients: null,
         totalPrice: 5,
         purchasable : false,
         purchasing: false,
-        loading: false
+        loading: false,
+        error: false
+    }
+
+    //fetch starting ingredients:
+    componentDidMount () {
+        axios.get('/ingredients.json')
+            .then(response => {
+                this.setState({ingredients: response.data});
+            })
+            .catch(error => {
+                this.setState({error:true})
+            });
     }
 
     //purchase state will be false unless there are any ingredients in ingredients above 0.
@@ -124,6 +131,7 @@ class BurgerBuilder extends Component {
             if the key is below or equal to 0)*/
         }
 
+        //Start orderSummary properly
         let orderSummary = <OrderSummary 
             ingredients={this.state.ingredients}
             price={this.state.totalPrice} 
@@ -131,6 +139,26 @@ class BurgerBuilder extends Component {
             purchaseContinued={this.purchaseContinueHandler} 
             />;
 
+        //Start with the Burger and the Controls properly
+        let burger= <Aux>
+            <Burger ingredients = {this.state.ingredients}/>
+            <BuildControls
+            price={this.state.totalPrice}
+            ingredientRemoved={this.removeIngredientHandler}
+            ingredientAdded={this.addIngredientHandler}
+            disabled={disabledInfo}
+            purchasable={this.state.purchasable}
+            ordered={this.purchaseHandler} />
+            </Aux>;
+
+        //If no ingredients (AKA hasn't been loaded in from backend yet)
+        //Then put a spinner/message on Burger and set orderSummary to null
+        if (!this.state.ingredients) {
+            //Prints a pargraph if there is an error, and a spinner (cuz it's loading), if there isn't one.
+            burger= this.state.error? <p>Ingredients can't be loaded</p> : <Spinner/>
+            orderSummary = null;
+        }
+        
         if(this.state.loading) {
             orderSummary = <Spinner/>
         }
@@ -140,15 +168,7 @@ class BurgerBuilder extends Component {
             <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelHandler}>
                 {orderSummary}
             </Modal>
-            <Burger ingredients = {this.state.ingredients}/>
-            <BuildControls
-                price={this.state.totalPrice}
-                ingredientRemoved={this.removeIngredientHandler}
-                ingredientAdded={this.addIngredientHandler}
-                disabled={disabledInfo}
-                purchasable={this.state.purchasable}
-                ordered={this.purchaseHandler}
-            />
+            {burger}
         </Aux>
         );
     }
