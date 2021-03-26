@@ -15,7 +15,13 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Your Name'
                 },
-                value: ''
+                value: '',
+                validation: {
+                    required: true,
+                    minLength: 2
+                },
+                valid: false,
+                touched: false
             },
             street: {
                 elementType: 'input',
@@ -23,7 +29,12 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Street'
                 },
-                value: ''
+                value: '',
+                validation: {
+                    required: true
+                },
+                valid: false,
+                touched: false
             },
             zipCode: {
                 elementType: 'input',
@@ -31,7 +42,14 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'ZIP Code'
                 },
-                value: ''
+                value: '',
+                validation: {
+                    required: true,
+                    minLength: 5,
+                    maxLength: 5
+                },
+                valid: false,
+                touched: false
             },
             country: {
                 elementType: 'input',
@@ -39,7 +57,12 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Country'
                 },
-                value: ''
+                value: '',
+                validation: {
+                    required: true
+                },
+                valid: false,
+                touched: false
             },
             email: {
                 elementType: 'input',
@@ -47,7 +70,12 @@ class ContactData extends Component {
                     type: 'email',
                     placeholder: 'Your E Mail'
                 },
-                value: ''
+                value: '',
+                validation: {
+                    required: true
+                },
+                valid: false,
+                touched: false
             },
             deliveryMethod: {
                 elementType: 'select',
@@ -58,10 +86,13 @@ class ContactData extends Component {
                     ],
                     placeholder: 'Delivery Method'
                 },
-                value: ''
+                value: 'fastest',
+                validation: {},
+                valid: true, 
             }
         },
-        loading: false      
+        loading: false,
+        formIsValid: false 
     }
     orderHandler = (event) => {
         event.preventDefault();
@@ -70,7 +101,7 @@ class ContactData extends Component {
         const formData= {};
 
         for (let formElementIdentifier in this.state.orderForm){
-            //This creates:
+            //This creates SOMETHING LIKE THIS:
             //formData[name] = "Sarah"
             //formData[email] = "sarah@gmail.com"
             formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
@@ -95,6 +126,27 @@ class ContactData extends Component {
             });
     }
 
+    checkValidity(value, rules) {
+        let isValid = true;
+
+        if (!rules){ //Means no rules
+            return true;
+        }
+        if (rules.required) {
+            isValid = (value.trim() !== '') && isValid;//isValid will be true as long as value isn't empty or whitespace
+        }
+
+        if (rules.minLength){
+            isValid = (value.length >= rules.minLength) && isValid;
+        }
+
+        if (rules.maxLength) {
+            isValid = (value.length <= rules.maxLength) && isValid;
+        }
+
+        return isValid;
+    }   
+
     inputChangedHandler = (event, inputIdentifier) => {
         console.log(event.target.value)
 
@@ -105,10 +157,21 @@ class ContactData extends Component {
             ...updatedOrderForm[inputIdentifier] //create a copy of a copy so it is cloned deeply
         }
 
-        updatedFormElement.value = event.target.value;//Change the value in the copy of the copy
-        updatedOrderForm[inputIdentifier] = updatedFormElement; //Change the value of the copy with the copy of the copy
+        //Change the value in the copy of the copy
+        updatedFormElement.value = event.target.value;
+        //Updates the valid variable with the result of checkValidity
+        updatedFormElement.valid = this.checkValidity(updatedFormElement.value, updatedFormElement.validation);
+        updatedFormElement.touched= true; 
+        //Change the value of the copy with the copy of the copy
+        updatedOrderForm[inputIdentifier] = updatedFormElement; 
+        console.log(updatedFormElement);
 
-        this.setState({orderForm: updatedOrderForm}) //Set state with the copy.
+        //Gonna check if all inputs are valid:
+        let formIsValid = true; 
+        for (let inputId in updatedOrderForm){
+            formIsValid = updatedOrderForm[inputId].valid && formIsValid;
+        }
+        this.setState({orderForm: updatedOrderForm, formIsValid: formIsValid}) //Set state with the copy and the overall form validity.
     }
 
     render() {
@@ -130,9 +193,12 @@ class ContactData extends Component {
                     elementType={formElement.config.elementType} 
                     elementConfig={formElement.config.elementConfig} 
                     value={formElement.config.value}
+                    invalid={!formElement.config.valid}
+                    shouldValidate={formElement.config.validation}
+                    touched={formElement.config.touched}
                     changed={(event) => this.inputChangedHandler(event, formElement.id)}/>)
                 })}
-                <Button btnType="Success">ORDER</Button>
+                <Button btnType="Success" disabled={!this.state.formIsValid}>ORDER</Button>
             </form>
         );
 
