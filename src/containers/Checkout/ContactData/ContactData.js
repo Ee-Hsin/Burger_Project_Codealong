@@ -67,21 +67,19 @@ class ContactData extends Component {
         event.preventDefault();
         this.setState({loading: true});
 
+        const formData= {};
+
+        for (let formElementIdentifier in this.state.orderForm){
+            //This creates:
+            //formData[name] = "Sarah"
+            //formData[email] = "sarah@gmail.com"
+            formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
+        }
+
         const order={
             ingredients: this.props.ingredients,
             price: this.props.price, //on real app, would take ingredients and recalculate price on the server itself.
-
-            //Hard coding info for now (in future will implement checkout page requiring info)
-            customer: {
-                name: 'Ee Hsin Kok',
-                address: {
-                    street: 'Teststreet 1',
-                    zipCode: '41351',
-                    country: 'Germany'
-                },
-                email: "test@test.com"
-            },
-            deliveryMethod: 'fastest'
+            orderData: formData
         }
         //The .json format is exclusive to Firebase to tell it to store it in .json.
         //Anyway, the /orders endpoint will let firebase create a node for orders.
@@ -126,7 +124,7 @@ class ContactData extends Component {
         }
 
         let form = (
-            <form >
+            <form onSubmit={this.orderHandler}>
                 {formElementsArray.map(formElement => {
                     return (<Input key={formElement.id} 
                     elementType={formElement.config.elementType} 
@@ -134,7 +132,7 @@ class ContactData extends Component {
                     value={formElement.config.value}
                     changed={(event) => this.inputChangedHandler(event, formElement.id)}/>)
                 })}
-                <Button btnType="Success" clicked={this.orderHandler}>ORDER</Button>
+                <Button btnType="Success">ORDER</Button>
             </form>
         );
 
