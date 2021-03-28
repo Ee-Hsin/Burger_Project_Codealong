@@ -8,8 +8,8 @@ import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 class Orders extends Component {
     
     state = {
-        orders: [],
-        loading: true
+        orders: [], //<-- Let's manage this via redux (but only once we know how to handle async in Redux)
+        loading: true //<-- UI
     }
 
     componentDidMount() {

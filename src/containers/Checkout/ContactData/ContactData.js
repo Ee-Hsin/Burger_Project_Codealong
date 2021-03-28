@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import Button from '../../../components/UI/Button/Button';
@@ -13,7 +14,7 @@ class ContactData extends Component {
                 elementType: 'input',
                 elementConfig: {
                     type: 'text',
-                    placeholder: 'Your Name'
+                    placeholder: 'Your Name' //UI
                 },
                 value: '',
                 validation: {
@@ -108,7 +109,7 @@ class ContactData extends Component {
         }
 
         const order={
-            ingredients: this.props.ingredients,
+            ingredients: this.props.ings,
             price: this.props.price, //on real app, would take ingredients and recalculate price on the server itself.
             orderData: formData
         }
@@ -148,7 +149,6 @@ class ContactData extends Component {
     }   
 
     inputChangedHandler = (event, inputIdentifier) => {
-        console.log(event.target.value)
 
         const updatedOrderForm = {
             ...this.state.orderForm //spreading jus tthe orderForm dooes not create "deep clone", which we need now.
@@ -164,7 +164,6 @@ class ContactData extends Component {
         updatedFormElement.touched= true; 
         //Change the value of the copy with the copy of the copy
         updatedOrderForm[inputIdentifier] = updatedFormElement; 
-        console.log(updatedFormElement);
 
         //Gonna check if all inputs are valid:
         let formIsValid = true; 
@@ -216,5 +215,11 @@ class ContactData extends Component {
 
 }
 
+const mapStateToProps = state => {
+    return {
+        ings: state.ingredients,
+        price: state.totalPrice
+    }
+}
 
-export default ContactData;
+export default connect(mapStateToProps)(ContactData);
