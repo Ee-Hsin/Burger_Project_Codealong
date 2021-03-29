@@ -8,9 +8,9 @@ import { createStore } from 'redux';
 
 import registerServiceWorker from './registerServiceWorker';
 import { BrowserRouter } from 'react-router-dom';
-import reducer from './store/reducer';
+import reducer from './store/reducers/burgerBuilder';
 
-const store = createStore(reducer);
+const store = createStore(reducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
 //Wrap app in Browser Router so routing is set up.
 const app = (
