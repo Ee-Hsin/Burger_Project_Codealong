@@ -14,7 +14,7 @@ const INGREDIENT_PRICES = {
     bacon: 0.7
 };
 
-const addIngredient = (state, action){
+const addIngredient = (state, action) => {
     const updatedIngredient = {[action.ingredientName] : state.ingredients[action.ingredientName] + 1};
     const updatedIngredients = updateObject(state.ingredients, updatedIngredient);
     const updatedState = {
