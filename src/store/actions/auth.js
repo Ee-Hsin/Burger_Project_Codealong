@@ -24,6 +24,10 @@ export const authFail = (error) => {
 
 //Logout action creator:
 export const logout = () => {
+    //We remove the token, expiration time and userId when we log out.
+    localStorage.removeItem('token');
+    localStorage.removeItem('expirationDate');
+    localStorage.removeItem('userId');
     return {
         type: actionTypes.AUTH_LOGOUT //dispatches the logout action
     };
@@ -54,6 +58,17 @@ export const auth = (email, password, isSignup) => {
         axios.post(url,authData)
             .then(response => {
                 console.log(response);
+
+                //We are going to store our token and its expiration date in Local Storage:
+                //We first calculate the expiration Date based on the current time.
+                const expirationDate = new Date(new Date().getTime() + response.data.expiresIn * 1000) 
+                //We store the expiration Date 
+                localStorage.setItem('expirationDate', expirationDate);  
+                //Then we store the token.
+                localStorage.setItem('token', response.data.idToken); 
+                //Then we store the userId.
+                localStorage.setItem('userId', response.data.localId);
+
                 dispatch(authSuccess(response.data.idToken, response.data.localId));
                 dispatch(checkAuthTimeout(response.data.expiresIn)); //we pass it a string with the time until the token expires.
             })
@@ -68,5 +83,28 @@ export const setAuthRedirectPath = (path) => {
     return {
         type: actionTypes.SET_AUTH_REDIRECT_PATH,
         path: path
+    }
+}
+
+//We will run this everytime we refresh the page, that way we can quickly check if the user is authenticated or not.
+export const authCheckState = () => {
+    //won't run async code, but want to dispatch multiple actions, so use this format.
+    return dispatch => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            //If token is null, don't need to do anything. User was not logged in.
+        } else {
+            //We retrieve the date from the localStorage and convert it into a date object.
+            const expirationDate = new Date(localStorage.getItem('expirationDate'));
+
+            if (new Date() < expirationDate){
+                const userId = localStorage.getItem('userId') //We get the userId from local Storage as well
+                dispatch(authSuccess(token, userId)) 
+                //We set it to expire in the time from the expiration to now.
+                dispatch(checkAuthTimeout((expirationDate.getTime() - new Date().getTime())/1000))
+            } else {
+                dispatch(logout())
+            }
+        }
     }
 }
