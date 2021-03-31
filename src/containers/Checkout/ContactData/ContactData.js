@@ -111,6 +111,7 @@ class ContactData extends Component {
         }
 
         const order={
+            userId: this.props.userId, //Just added this, so the order knows who ordered it.
             ingredients: this.props.ings,
             price: this.props.price, //on real app, would take ingredients and recalculate price on the server itself.
             orderData: formData
@@ -222,7 +223,8 @@ const mapStateToProps = state => {
         ings: state.burgerBuilder.ingredients,
         price: state.burgerBuilder.totalPrice,
         loading: state.order.loading,
-        token: state.auth.token
+        token: state.auth.token,
+        userId: state.auth.userId
     }
 }
 
