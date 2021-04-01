@@ -16,7 +16,9 @@ const sideDrawer = (props) => {
     return(
         <Aux>
             <Backdrop show={props.open} clicked={props.closed}/>
-            <div className={attachedClasses.join(' ')}>
+            <div className={attachedClasses.join(' ')} onClick={props.closed}>{/* Add props.closed to OnClick, which is an 
+            event handler passed in by the layout parent component. This is so that when the user clicks the sidedrawer, it closes. 
+            We want the sidedrawer to close onClick so that when links are clicked to change the page, the sidedrawer retracts.*/}
                 <div className={classes.Logo}>
                     <Logo />    
                 </div>

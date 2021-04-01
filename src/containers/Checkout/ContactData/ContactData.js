@@ -8,6 +8,7 @@ import axios from '../../../axios-orders';
 import Input from '../../../components/UI/Input/Input';
 import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
 import * as actions from '../../../store/actions/index';
+import { updateObject, checkValidity } from '../../../shared/utility';
 
 class ContactData extends Component {
     state= {
@@ -119,52 +120,17 @@ class ContactData extends Component {
         this.props.onOrderBurger(order, this.props.token);
     }
 
-    checkValidity(value, rules) {
-        let isValid = true;
-
-        if (!rules){ //Means no rules
-            return true;
-        }
-        if (rules.required) {
-            isValid = (value.trim() !== '') && isValid;//isValid will be true as long as value isn't empty or whitespace
-        }
-
-        if (rules.minLength){
-            isValid = (value.length >= rules.minLength) && isValid;
-        }
-
-        if (rules.maxLength) {
-            isValid = (value.length <= rules.maxLength) && isValid;
-        }
-
-        //Should have added these 2 rules earlier, but just decided to add this now (I also added the rule in the config above).
-        if (rules.isEmail) {
-            const pattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
-            isValid = pattern.test(value) && isValid
-        }
-
-        if (rules.isNumeric){
-            const pattern = /^\d+$/;
-            isValid = pattern.test(value) && isValid
-        }
-
-        return isValid;
-    }   
-
     inputChangedHandler = (event, inputIdentifier) => {
+        //Just refactored and utilized my updateObject() function 
+        const updatedFormElement = updateObject(this.state.orderForm[inputIdentifier], {
+            value: event.target.value,
+            valid: checkValidity(event.target.value, this.state.orderForm[inputIdentifier].validation),
+            touched: true
+        })
+        const updatedOrderForm = updateObject(this.state.orderForm, {
+            [inputIdentifier] : updatedFormElement
+        })
 
-        const updatedOrderForm = {
-            ...this.state.orderForm //spreading jus tthe orderForm dooes not create "deep clone", which we need now.
-        }
-        const updatedFormElement = {
-            ...updatedOrderForm[inputIdentifier] //create a copy of a copy so it is cloned deeply
-        }
-
-        //Change the value in the copy of the copy
-        updatedFormElement.value = event.target.value;
-        //Updates the valid variable with the result of checkValidity
-        updatedFormElement.valid = this.checkValidity(updatedFormElement.value, updatedFormElement.validation);
-        updatedFormElement.touched= true; 
         //Change the value of the copy with the copy of the copy
         updatedOrderForm[inputIdentifier] = updatedFormElement; 
 
